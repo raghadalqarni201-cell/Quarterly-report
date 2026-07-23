@@ -330,7 +330,7 @@ div[data-baseweb="select"] span {
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
 ul[role="listbox"], li[role="option"] {
     background-color: #FFFFFF !important;
-    border: 1px solid #2C3E50 !important;
+    border: 1px solid #a5a9c9 !important;
     border-radius: 6px !important;
 }
 ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li,
@@ -575,11 +575,11 @@ if results:
         )
         render_corporate_table(display_reasons, "Reason", "Table 2 — Total Rejection Reasons Summary")
 
-    st.markdown("### ✅ Validation Check")
+    st.markdown("###Validation Check")
     if total_cases_status == total_cases_reasons:
         st.markdown(
             f"""<div class="validation-box validation-success">
-                    ✅ Balanced: Total Cases (Status) = {total_cases_status:,}
+                    Balanced: Total Cases (Status) = {total_cases_status:,}
                     = Total Cases (Reasons) = {total_cases_reasons:,}
                 </div>""",
             unsafe_allow_html=True,
@@ -602,7 +602,7 @@ if results:
         f"Quarterly_Claims_Summary.xlsx"
     )
     st.download_button(
-        label="⬇️ Download Excel Summary",
+        label="Download Excel Summary",
         data=excel_buffer,
         file_name=file_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
