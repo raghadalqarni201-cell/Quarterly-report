@@ -132,9 +132,64 @@ def extract_sum_sheet(file_obj, month_name):
     return status_rows, reason_rows
 
 
+# Synonyms/variants seen in the wild for the "name" column of each table.
+# Matching is done case-insensitively after stripping whitespace.
+NAME_COLUMN_SYNONYMS = {
+    "Status": {"status", "statuses", "claim status"},
+    "Reason": {"reason", "reasons", "rejection reason", "rejection reasons"},
+}
+
+
+def _normalize_table(rows, name_col):
+    """Build a DataFrame with a guaranteed, clean schema:
+    [name_col, 'Cases', 'NetAmount+Vat'] regardless of:
+    - the input list being empty
+    - column names coming in with different casing/whitespace
+    - 'Reason' vs 'Reasons' (or similar) naming
+    - non-numeric / missing values in the numeric columns
+    """
+    expected_cols = [name_col, "Cases", "NetAmount+Vat"]
+
+    # Build from the raw rows WITHOUT forcing a column list first — forcing
+    # columns here would silently drop any differently-named key (e.g.
+    # "Reasons" instead of "Reason") before we get a chance to rename it.
+    df = pd.DataFrame(rows)
+
+    # Normalize column names: strip whitespace, then map known synonyms
+    # (case-insensitive) onto the canonical name_col.
+    synonyms = NAME_COLUMN_SYNONYMS.get(name_col, {name_col.lower()})
+    rename_map = {}
+    for col in df.columns:
+        cleaned = str(col).strip()
+        if cleaned.lower() in synonyms:
+            rename_map[col] = name_col
+        elif cleaned != col:
+            rename_map[col] = cleaned
+    if rename_map:
+        df = df.rename(columns=rename_map)
+
+    # Guarantee every expected column exists, even if the source data
+    # didn't produce it (e.g. an empty upload or an unexpected header).
+    for col in expected_cols:
+        if col not in df.columns:
+            df[col] = 0.0 if col != name_col else ""
+
+    # Clean the name column: string cast + strip whitespace.
+    df[name_col] = df[name_col].fillna("").astype(str).str.strip()
+
+    # Safely coerce numeric columns; anything non-numeric/missing becomes 0.
+    for numeric_col in ["Cases", "NetAmount+Vat"]:
+        df[numeric_col] = pd.to_numeric(df[numeric_col], errors="coerce").fillna(0)
+
+    # Drop rows with no name (nothing meaningful to group by).
+    df = df[df[name_col] != ""]
+
+    return df[expected_cols]
+
+
 def aggregate(status_rows, reason_rows):
-    status_df = pd.DataFrame(status_rows)
-    reason_df = pd.DataFrame(reason_rows)
+    status_df = _normalize_table(status_rows, "Status")
+    reason_df = _normalize_table(reason_rows, "Reason")
 
     status_summary = (
         status_df.groupby("Status", as_index=False)[["Cases", "NetAmount+Vat"]]
