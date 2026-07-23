@@ -305,18 +305,16 @@ div[data-testid="stWidgetLabel"] p {
     font-weight: 600 !important;
 }
 
-/* ---- Selectboxes Container & Selected Value Color ---- */
+/* ---- Selectboxes (Insurance Company, Months) ---- */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 div[data-baseweb="select"] > div,
 div[data-baseweb="select"],
 div[role="combobox"] {
-    background-color: #a5abcc !important;
+    background-color: #FFFFFF !important;
     color: #000000 !important;
     border: 1px solid #2C3E50 !important;
     border-radius: 6px !important;
 }
-
-/* Color of the selected value text and icons inside the field */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] *,
 div[data-baseweb="select"] * {
     color: #000000 !important;
@@ -325,10 +323,10 @@ div[data-baseweb="select"] * {
 }
 div[data-baseweb="select"] span {
     color: #000000 !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
 }
 
-/* Dropdown popover menu + options list */
+/* Dropdown popover menu + options */
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
 ul[role="listbox"], li[role="option"] {
     background-color: #FFFFFF !important;
@@ -346,7 +344,7 @@ li[role="option"] * {
 }
 ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover,
 li[role="option"]:hover {
-    background-color: #a5abcc !important;
+    background-color: #D0D3E5 !important;
     color: #000000 !important;
 }
 
