@@ -611,12 +611,16 @@ else:
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
 
 # --------------------------------------------------------------------------
-# Footer
+# Footer (حقوق الملكية)
 # --------------------------------------------------------------------------
 st.markdown("---")
 st.markdown(
-    "<p style='text-align: center; color: #555555; font-size: 12px; font-family: \"Times New Roman\", Times, serif;'>"
-    "Developed by <b>Raghad Alqarni</b> | All Rights Reserved © 2026"
-    "</p>",
+    """
+    <div style='text-align: center; padding: 10px 0;'>
+        <p style='color: #444444 !important; font-size: 13px !important; font-family: "Times New Roman", Times, serif !important; margin: 0;'>
+            Developed by <b>Raghad Alqarni</b> | All Rights Reserved © 2026
+        </p>
+    </div>
+    """,
     unsafe_allow_html=True
 )
