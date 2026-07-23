@@ -609,3 +609,14 @@ if results:
     )
 else:
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
+
+# --------------------------------------------------------------------------
+# Footer
+# --------------------------------------------------------------------------
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #555555; font-size: 12px; font-family: \"Times New Roman\", Times, serif;'>"
+    "Developed by <b>Raghad Alqarni</b> | All Rights Reserved © 2026"
+    "</p>",
+    unsafe_allow_html=True
+)
