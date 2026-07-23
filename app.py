@@ -40,8 +40,6 @@ MONTH_NAMES = [
 
 SUM_SHEET_NAME = "SUM"
 
-# Each clinic shares the same data-row span for both its Status table
-# (columns A:C) and its "Total Reasons" table (columns G:I).
 CLINICS = [
     {"name": "Al Osrah Medical Center", "start": 4, "end": 22},
     {"name": "Al Dafi First Aid Medical Center", "start": 26, "end": 44},
@@ -61,7 +59,6 @@ REASON_COL = {"name": 7, "cases": 8, "amount": 9}   # G, H, I ("Total Reasons" t
 # --------------------------------------------------------------------------
 
 def safe_number(value):
-    """Coerce a cell value to float, treating blanks/invalid values as 0."""
     if value is None:
         return 0.0
     if isinstance(value, (int, float)):
@@ -82,9 +79,6 @@ def clean_text(value):
 
 
 def is_total_or_blank(text):
-    """True if a Status/Reason label is blank or is a 'Total' row that the
-    clinic's own sheet already computes (e.g. 'Total', 'TOTAL', 'Grand Total').
-    These must be excluded so we don't double-count into the aggregated sums."""
     normalized = text.strip().lower()
     if normalized == "":
         return True
@@ -92,8 +86,6 @@ def is_total_or_blank(text):
 
 
 def extract_sum_sheet(file_obj, month_name):
-    """Read the SUM sheet of one uploaded workbook and return two lists of
-    row-dicts: status rows and rejection-reason rows, tagged with month."""
     wb = openpyxl.load_workbook(file_obj, data_only=True)
 
     if SUM_SHEET_NAME not in wb.sheetnames:
@@ -334,7 +326,7 @@ div[data-baseweb="select"] span {
     font-weight: 500 !important;
 }
 
-/* Dropdown popover menu + its options */
+/* Dropdown popover menu + options */
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
 ul[role="listbox"], li[role="option"] {
     background-color: #FFFFFF !important;
@@ -374,37 +366,18 @@ div[data-testid="stFileUploaderFile"] {
     background-color: #E9E9EF !important;
     color: #333333 !important;
     border-radius: 6px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 6px 10px !important;
 }
 
-/* ---- EXPLICIT DELETE / REMOVE FILE BUTTON RECOVERY ---- */
-/* Force Streamlit's file delete button (X / trash icon) to be clearly visible and clickable */
-[data-testid="stFileUploader"] button[aria-label="Remove file"],
-[data-testid="stFileUploader"] button[title="Remove file"],
-[data-testid="stFileUploaderFile"] button,
-[data-testid="stFileUploader"] button[data-testid="baseButton-minimal"] {
+/* Force Streamlit action buttons inside uploaded files (the delete / remove icon) */
+[data-testid="stFileUploaderFileData"] + div button,
+[data-testid="stFileUploaderDeleteBtn"],
+[data-testid="stFileUploader"] button {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    background-color: #2C3E50 !important;
-    color: #FFFFFF !important;
-    border-radius: 50% !important;
-    border: none !important;
-    padding: 4px !important;
-    cursor: pointer !important;
-    margin-left: 8px !important;
-}
-[data-testid="stFileUploader"] button[aria-label="Remove file"] svg,
-[data-testid="stFileUploaderFile"] button svg {
-    fill: #FFFFFF !important;
-    color: #FFFFFF !important;
 }
 
-/* Hide duplicate dropzone labels safely without hiding the file removal controls */
-[data-testid="stFileUploaderDropzone"] label,
+/* Hide duplicate text labels safely */
 [data-testid="stFileUploaderDropzone"] small {
     display: none !important;
 }
@@ -469,7 +442,7 @@ table.corporate-table tr:last-child td {
     color: #6B1414;
 }
 
-/* ---- Alert notifications (st.success, st.info) ---- */
+/* ---- Alert notifications ---- */
 [data-testid="stAlert"] {
     background-color: #DAF0E3 !important;
     color: #111111 !important;
@@ -523,6 +496,13 @@ for i, col in enumerate(cols, start=1):
         f = st.file_uploader(
             f"File {i}", type=["xlsx", "xls"], key=f"file_{i}", label_visibility="collapsed"
         )
+        
+        # إضافة زر حذف مباشر برمجياً تحت مربع الملف لمنح خيار الإزالة الفوري
+        if f is not None:
+            if st.button(f"🗑️ Delete File {i}", key=f"clear_{i}"):
+                st.session_state[f"file_{i}"] = None
+                st.rerun()
+
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
@@ -532,7 +512,7 @@ if process_clicked:
     if any(u["file"] is None for u in uploads):
         st.warning("Please upload all 3 files before processing.")
     elif len({u["month"] for u in uploads}) != 3:
-        st.warning("Please select 3 different months (one per file).")
+        st.warning("Please warning: select 3 different months (one per file).")
     else:
         all_status_rows = []
         all_reason_rows = []
