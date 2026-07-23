@@ -81,6 +81,16 @@ def clean_text(value):
     return str(value).strip()
 
 
+def is_total_or_blank(text):
+    """True if a Status/Reason label is blank or is a 'Total' row that the
+    clinic's own sheet already computes (e.g. 'Total', 'TOTAL', 'Grand Total').
+    These must be excluded so we don't double-count into the aggregated sums."""
+    normalized = text.strip().lower()
+    if normalized == "":
+        return True
+    return "total" in normalized
+
+
 def extract_sum_sheet(file_obj, month_name):
     """Read the SUM sheet of one uploaded workbook and return two lists of
     row-dicts: status rows and rejection-reason rows, tagged with month."""
@@ -99,7 +109,9 @@ def extract_sum_sheet(file_obj, month_name):
     for clinic in CLINICS:
         for row in range(clinic["start"], clinic["end"] + 1):
             status_val = clean_text(ws.cell(row=row, column=STATUS_COL["name"]).value)
-            if status_val:
+            # Skip blank rows AND each clinic's own built-in "Total" row —
+            # summing those in would double the real totals.
+            if status_val and not is_total_or_blank(status_val):
                 status_rows.append(
                     {
                         "Status": status_val,
@@ -113,7 +125,7 @@ def extract_sum_sheet(file_obj, month_name):
                 )
 
             reason_val = clean_text(ws.cell(row=row, column=REASON_COL["name"]).value)
-            if reason_val:
+            if reason_val and not is_total_or_blank(reason_val):
                 reason_rows.append(
                     {
                         "Reason": reason_val,
@@ -362,10 +374,19 @@ if results:
     total_cases_status = int(status_summary["Cases"].sum())
     total_cases_reasons = int(reason_summary["Cases"].sum())
 
+    def with_total_row(df, name_col):
+        """Return a display copy with one dynamically computed TOTAL row
+        appended — computed strictly from the already-aggregated individual
+        statuses/reasons, never from any 'Total' row in the source sheets."""
+        total_row = pd.DataFrame(
+            [{name_col: "TOTAL", "Cases": df["Cases"].sum(), "NetAmount+Vat": df["NetAmount+Vat"].sum()}]
+        )
+        return pd.concat([df, total_row], ignore_index=True)
+
     c1, c2 = st.columns(2)
     with c1:
         st.subheader("Table 1 — Total Status Summary")
-        display_status = status_summary.copy()
+        display_status = with_total_row(status_summary, "Status")
         display_status["Cases"] = display_status["Cases"].map("{:,.0f}".format)
         display_status["NetAmount+Vat"] = display_status["NetAmount+Vat"].map(
             lambda x: f"{x:,.2f} SAR"
@@ -374,7 +395,7 @@ if results:
 
     with c2:
         st.subheader("Table 2 — Total Rejection Reasons Summary")
-        display_reasons = reason_summary.copy()
+        display_reasons = with_total_row(reason_summary, "Reason")
         display_reasons["Cases"] = display_reasons["Cases"].map("{:,.0f}".format)
         display_reasons["NetAmount+Vat"] = display_reasons["NetAmount+Vat"].map(
             lambda x: f"{x:,.2f} SAR"
