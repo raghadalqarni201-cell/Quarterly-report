@@ -1,0 +1,14 @@
+[theme]
+# Forces Streamlit to render in light mode regardless of the user's OS/browser
+# dark-mode preference. Without this, Streamlit can inject its own dark-theme
+# CSS variables that fight with the custom overrides in app.py.
+base = "light"
+
+# Matches the app's CSS palette so Streamlit's own generated widget chrome
+# (scrollbars, focus rings, etc. that our CSS doesn't reach) stays consistent
+# instead of defaulting back to Streamlit's stock colors.
+primaryColor = "#2C3E50"
+backgroundColor = "#DDDEEB"
+secondaryBackgroundColor = "#E0E3FF"
+textColor = "#000000"
+font = "serif"
