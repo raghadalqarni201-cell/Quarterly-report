@@ -343,32 +343,42 @@ div[data-testid="stWidgetLabel"] p {
 }
 
 /* ---- Selectboxes (Insurance Company, Months) ---- */
+/* Broad, thorough targeting: BaseWeb class selectors AND ARIA role
+   selectors together, so no theme variant slips through with a dark
+   background. */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-div[data-baseweb="select"] > div {
+div[data-baseweb="select"] > div,
+div[data-baseweb="select"],
+div[role="combobox"] {
     background-color: #E0E3FF !important;
     color: #000000 !important;
     border: 1px solid #2C3E50 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] *,
 div[data-baseweb="select"] * {
     color: #000000 !important;
     fill: #000000 !important;
+    font-family: "Times New Roman", Times, serif !important;
 }
-/* Dropdown popover menu + its options */
-ul[data-baseweb="menu"], div[data-baseweb="popover"] ul {
+/* Dropdown popover menu + its options (both BaseWeb class and ARIA role) */
+ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
+ul[role="listbox"], li[role="option"] {
     background-color: #E0E3FF !important;
     border: 1px solid #2C3E50 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
 }
-ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li {
+ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li,
+li[role="option"] {
     background-color: #E0E3FF !important;
     color: #000000 !important;
 }
-ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] li * {
+ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] li *,
+li[role="option"] * {
     color: #000000 !important;
 }
-ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover {
+ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover,
+li[role="option"]:hover {
     background-color: #C7CBF2 !important;
     color: #000000 !important;
 }
@@ -397,6 +407,13 @@ div[data-testid="stFileUploaderFile"] {
     color: #333333 !important;
     border-radius: 6px !important;
 }
+/* Hide the uploader's own internal <label> element — with
+   label_visibility="collapsed" set in Python this is a defensive
+   backstop against any nested/duplicated label text. */
+[data-testid="stFileUploader"] label {
+    display: none !important;
+}
+
 
 /* ---- Card wrapper used around our custom HTML tables ---- */
 /* Soft, light container that blends with the #DDDEEB page background
@@ -452,12 +469,24 @@ table.corporate-table tr:last-child td {
     border: 1px solid #B6BAD9;
 }
 .validation-success {
-    background-color: #BCD9B6;
-    color: #1E4620;
+    background-color: #A5B8AD;
+    color: #111111;
 }
 .validation-error {
     background-color: #F3C6C6;
     color: #6B1414;
+}
+
+/* ---- Notifications / alerts (st.success, st.info, etc.) ----
+   Replaces Streamlit's default green success color with the
+   soft matte #A5B8AD across every alert box in the app. */
+[data-testid="stAlert"] {
+    background-color: #A5B8AD !important;
+    color: #111111 !important;
+    border: none !important;
+}
+[data-testid="stAlert"] * {
+    color: #111111 !important;
 }
 
 /* ---- Buttons (Process + Download) ---- */
@@ -503,7 +532,9 @@ uploads = []
 for i, col in enumerate(cols, start=1):
     with col:
         st.markdown(f"**File {i}**")
-        f = st.file_uploader("Upload", type=["xlsx", "xls"], key=f"file_{i}")
+        f = st.file_uploader(
+            f"File {i}", type=["xlsx", "xls"], key=f"file_{i}", label_visibility="collapsed"
+        )
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
