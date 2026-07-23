@@ -343,51 +343,58 @@ div[data-testid="stWidgetLabel"] p {
 }
 
 /* ---- Selectboxes (Insurance Company, Months) ---- */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 div[data-baseweb="select"] > div {
-    background-color: #B6BAD9 !important;
-    color: #111111 !important;
+    background-color: #E0E3FF !important;
+    color: #000000 !important;
     border: 1px solid #2C3E50 !important;
     border-radius: 8px !important;
 }
+div[data-testid="stSelectbox"] div[data-baseweb="select"] *,
 div[data-baseweb="select"] * {
-    color: #111111 !important;
-    fill: #111111 !important;
+    color: #000000 !important;
+    fill: #000000 !important;
 }
 /* Dropdown popover menu + its options */
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul {
-    background-color: #B6BAD9 !important;
+    background-color: #E0E3FF !important;
+    border: 1px solid #2C3E50 !important;
+    border-radius: 8px !important;
 }
 ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li {
-    background-color: #B6BAD9 !important;
-    color: #111111 !important;
+    background-color: #E0E3FF !important;
+    color: #000000 !important;
+}
+ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] li * {
+    color: #000000 !important;
 }
 ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover {
-    background-color: #DDDEEB !important;
-    color: #111111 !important;
+    background-color: #C7CBF2 !important;
+    color: #000000 !important;
 }
 
 /* ---- File uploaders: kill the default dark/black dropzone ---- */
 section[data-testid="stFileUploaderDropzone"],
 div[data-testid="stFileUploader"] section {
-    background-color: #BABABF !important;
+    background-color: #D7D8E0 !important;
     border: 1px dashed #2C3E50 !important;
     border-radius: 10px !important;
 }
 section[data-testid="stFileUploaderDropzone"] *,
 div[data-testid="stFileUploader"] * {
-    color: #111111 !important;
-    fill: #111111 !important;
+    color: #333333 !important;
+    fill: #333333 !important;
 }
 div[data-testid="stFileUploader"] button {
     background-color: #FFFFFF !important;
-    color: #111111 !important;
+    color: #333333 !important;
     border: 1px solid #2C3E50 !important;
     border-radius: 6px !important;
 }
 /* Uploaded-file chip row (name, size, remove icon) */
 div[data-testid="stFileUploaderFile"] {
     background-color: #E9E9EF !important;
-    color: #111111 !important;
+    color: #333333 !important;
     border-radius: 6px !important;
 }
 
@@ -454,6 +461,12 @@ table.corporate-table tr:last-child td {
 }
 
 /* ---- Buttons (Process + Download) ---- */
+/* 1cm (38px) gap above each button, applied to the wrapper div so the
+   spacing is reliable regardless of Streamlit's internal button markup. */
+div.stDownloadButton,
+div.stButton {
+    margin-top: 38px;
+}
 div.stDownloadButton > button,
 div.stButton > button {
     background-color: #2C3E50;
@@ -490,7 +503,7 @@ uploads = []
 for i, col in enumerate(cols, start=1):
     with col:
         st.markdown(f"**File {i}**")
-        f = st.file_uploader(f"Excel file {i}", type=["xlsx", "xls"], key=f"file_{i}")
+        f = st.file_uploader("Upload", type=["xlsx", "xls"], key=f"file_{i}")
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
@@ -616,5 +629,4 @@ if results:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 else:
-    st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
