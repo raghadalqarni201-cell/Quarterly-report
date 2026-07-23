@@ -382,6 +382,20 @@ li[role="option"]:hover {
     background-color: #C7CBF2 !important;
     color: #000000 !important;
 }
+/* Extra defensive coverage: exact DOM path + span/div text nodes, in
+   case a Streamlit version renders the control with different nesting
+   than the selectors above already handle. */
+[data-testid="stSelectbox"] > div > div,
+div[data-baseweb="select"] > div,
+ul[role="listbox"],
+li[role="option"] {
+    background-color: #E0E3FF !important;
+    color: #000000 !important;
+}
+div[data-baseweb="select"] span,
+div[data-baseweb="select"] div {
+    color: #000000 !important;
+}
 
 /* ---- File uploaders: kill the default dark/black dropzone ---- */
 section[data-testid="stFileUploaderDropzone"],
@@ -407,9 +421,15 @@ div[data-testid="stFileUploaderFile"] {
     color: #333333 !important;
     border-radius: 6px !important;
 }
-/* Hide the uploader's own internal <label> element — with
-   label_visibility="collapsed" set in Python this is a defensive
-   backstop against any nested/duplicated label text. */
+/* Hide Streamlit's duplicate file uploader dropzone label text.
+   label_visibility="collapsed" in Python already removes the widget's
+   top-level label; these two rules are the defensive backstop for the
+   *internal* label Streamlit renders inside the dropzone itself, plus
+   the small "Limit 200MB per file..." caption. */
+[data-testid="stFileUploader"] section label,
+[data-testid="stFileUploader"] small {
+    display: none !important;
+}
 [data-testid="stFileUploader"] label {
     display: none !important;
 }
@@ -469,7 +489,7 @@ table.corporate-table tr:last-child td {
     border: 1px solid #B6BAD9;
 }
 .validation-success {
-    background-color: #A5B8AD;
+    background-color: #DAF0E3;
     color: #111111;
 }
 .validation-error {
@@ -478,12 +498,13 @@ table.corporate-table tr:last-child td {
 }
 
 /* ---- Notifications / alerts (st.success, st.info, etc.) ----
-   Replaces Streamlit's default green success color with the
-   soft matte #A5B8AD across every alert box in the app. */
+   Applies to BOTH success surfaces: the native "Quarter processed
+   successfully." alert and the " Balanced..." custom validation box
+   above (.validation-success shares this color too). */
 [data-testid="stAlert"] {
-    background-color: #A5B8AD !important;
+    background-color: #DAF0E3 !important;
     color: #111111 !important;
-    border: none !important;
+    border: 1px solid #B6BAD9 !important;
 }
 [data-testid="stAlert"] * {
     color: #111111 !important;
@@ -538,7 +559,7 @@ for i, col in enumerate(cols, start=1):
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
-process_clicked = st.button("🔄 Process Quarter", type="primary")
+process_clicked = st.button("Process Quarter", type="primary")
 
 if process_clicked:
     if any(u["file"] is None for u in uploads):
@@ -627,11 +648,11 @@ if results:
         )
         render_corporate_table(display_reasons, "Reason", "Table 2 — Total Rejection Reasons Summary")
 
-    st.markdown("### ✅ Validation Check")
+    st.markdown("### Validation Check")
     if total_cases_status == total_cases_reasons:
         st.markdown(
             f"""<div class="validation-box validation-success">
-                    ✅ Balanced: Total Cases (Status) = {total_cases_status:,}
+                     Balanced: Total Cases (Status) = {total_cases_status:,}
                     = Total Cases (Reasons) = {total_cases_reasons:,}
                 </div>""",
             unsafe_allow_html=True,
@@ -654,10 +675,11 @@ if results:
         f"Quarterly_Claims_Summary.xlsx"
     )
     st.download_button(
-        label="⬇️ Download Excel Summary",
+        label="Download Excel Summary",
         data=excel_buffer,
         file_name=file_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 else:
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
+
