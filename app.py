@@ -307,6 +307,108 @@ st.set_page_config(
     layout="wide",
 )
 
+# --------------------------------------------------------------------------
+# Corporate theme (CSS injection)
+# NOTE: This styling is purely visual for the Streamlit UI. It does NOT
+# touch build_download_workbook() — the downloadable Excel file's formatting
+# is untouched.
+# --------------------------------------------------------------------------
+CORPORATE_CSS = """
+<style>
+/* ---- Page ---- */
+.stApp {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+/* ---- Headings ---- */
+h1, h2, h3 {
+    color: #2C3E50 !important;
+    font-weight: 700 !important;
+}
+
+/* ---- Card wrapper used around our custom HTML tables ---- */
+.corporate-card {
+    background-color: #AFBCC9;
+    border: 1px solid #B6BAD9;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+}
+.corporate-card h4 {
+    color: #2C3E50;
+    margin-top: 0;
+    font-weight: 700;
+}
+
+/* ---- Data tables ---- */
+table.corporate-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    overflow: hidden;
+}
+table.corporate-table th {
+    background-color: #2C3E50;
+    color: #FFFFFF !important;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #B6BAD9;
+}
+table.corporate-table td {
+    padding: 8px 12px;
+    color: #000000;
+    border: 1px solid #B6BAD9;
+}
+table.corporate-table tr:nth-child(even) td {
+    background-color: #F4F6F8;
+}
+table.corporate-table tr:last-child td {
+    font-weight: 700;
+    background-color: #E4E8ED;
+}
+
+/* ---- Validation boxes ---- */
+.validation-box {
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-top: 8px;
+    border: 1px solid #B6BAD9;
+}
+.validation-success {
+    background-color: #BCD9B6;
+    color: #1E4620;
+}
+.validation-error {
+    background-color: #F3C6C6;
+    color: #6B1414;
+}
+
+/* ---- Buttons (Process + Download) ---- */
+div.stDownloadButton > button,
+div.stButton > button {
+    background-color: #2C3E50;
+    color: #FFFFFF;
+    border: 1px solid #2C3E50;
+    border-radius: 8px;
+    padding: 0.5em 1.3em;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+div.stDownloadButton > button:hover,
+div.stButton > button:hover {
+    background-color: #3E5670;
+    border-color: #3E5670;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.35);
+}
+</style>
+"""
+st.markdown(CORPORATE_CSS, unsafe_allow_html=True)
+
 st.title("📊 Quarterly Insurance Claims Aggregator")
 st.caption("Royal Commission clinics — Jubail Industrial")
 
@@ -383,36 +485,54 @@ if results:
         )
         return pd.concat([df, total_row], ignore_index=True)
 
+    def render_corporate_table(df, name_col, card_title):
+        """Render a DataFrame as a styled HTML table inside a corporate
+        card, so the th/td CSS rules (navy headers, lavender borders,
+        alternating rows) actually apply — st.dataframe's own grid widget
+        does not accept custom CSS for its cells."""
+        html_table = df.to_html(index=False, classes="corporate-table", border=0, escape=False)
+        st.markdown(
+            f"""<div class="corporate-card">
+                    <h4>{card_title}</h4>
+                    {html_table}
+                </div>""",
+            unsafe_allow_html=True,
+        )
+
     c1, c2 = st.columns(2)
     with c1:
-        st.subheader("Table 1 — Total Status Summary")
         display_status = with_total_row(status_summary, "Status")
         display_status["Cases"] = display_status["Cases"].map("{:,.0f}".format)
         display_status["NetAmount+Vat"] = display_status["NetAmount+Vat"].map(
             lambda x: f"{x:,.2f} SAR"
         )
-        st.dataframe(display_status, use_container_width=True, hide_index=True)
+        render_corporate_table(display_status, "Status", "Table 1 — Total Status Summary")
 
     with c2:
-        st.subheader("Table 2 — Total Rejection Reasons Summary")
         display_reasons = with_total_row(reason_summary, "Reason")
         display_reasons["Cases"] = display_reasons["Cases"].map("{:,.0f}".format)
         display_reasons["NetAmount+Vat"] = display_reasons["NetAmount+Vat"].map(
             lambda x: f"{x:,.2f} SAR"
         )
-        st.dataframe(display_reasons, use_container_width=True, hide_index=True)
+        render_corporate_table(display_reasons, "Reason", "Table 2 — Total Rejection Reasons Summary")
 
     st.markdown("### ✅ Validation Check")
     if total_cases_status == total_cases_reasons:
-        st.success(
-            f"Balanced: Total Cases (Status) = {total_cases_status:,} "
-            f"= Total Cases (Reasons) = {total_cases_reasons:,}"
+        st.markdown(
+            f"""<div class="validation-box validation-success">
+                    ✅ Balanced: Total Cases (Status) = {total_cases_status:,}
+                    = Total Cases (Reasons) = {total_cases_reasons:,}
+                </div>""",
+            unsafe_allow_html=True,
         )
     else:
-        st.error(
-            f"Mismatch detected — Total Cases (Status) = {total_cases_status:,} "
-            f"vs Total Cases (Reasons) = {total_cases_reasons:,} "
-            f"(difference of {abs(total_cases_status - total_cases_reasons):,})"
+        st.markdown(
+            f"""<div class="validation-box validation-error">
+                    ⚠️ Mismatch detected — Total Cases (Status) = {total_cases_status:,}
+                    vs Total Cases (Reasons) = {total_cases_reasons:,}
+                    (difference of {abs(total_cases_status - total_cases_reasons):,})
+                </div>""",
+            unsafe_allow_html=True,
         )
 
     excel_buffer = build_download_workbook(
