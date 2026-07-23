@@ -493,7 +493,7 @@ for i, col in enumerate(cols, start=1):
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
-process_clicked = st.button("🔄 Process Quarter", type="primary")
+process_clicked = st.button("Process Quarter", type="primary")
 
 if process_clicked:
     if any(u["file"] is None for u in uploads):
