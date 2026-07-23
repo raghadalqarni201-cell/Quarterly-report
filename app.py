@@ -109,8 +109,6 @@ def extract_sum_sheet(file_obj, month_name):
     for clinic in CLINICS:
         for row in range(clinic["start"], clinic["end"] + 1):
             status_val = clean_text(ws.cell(row=row, column=STATUS_COL["name"]).value)
-            # Skip blank rows AND each clinic's own built-in "Total" row —
-            # summing those in would double the real totals.
             if status_val and not is_total_or_blank(status_val):
                 status_rows.append(
                     {
@@ -144,8 +142,6 @@ def extract_sum_sheet(file_obj, month_name):
     return status_rows, reason_rows
 
 
-# Synonyms/variants seen in the wild for the "name" column of each table.
-# Matching is done case-insensitively after stripping whitespace.
 NAME_COLUMN_SYNONYMS = {
     "Status": {"status", "statuses", "claim status"},
     "Reason": {"reason", "reasons", "rejection reason", "rejection reasons"},
@@ -153,22 +149,9 @@ NAME_COLUMN_SYNONYMS = {
 
 
 def _normalize_table(rows, name_col):
-    """Build a DataFrame with a guaranteed, clean schema:
-    [name_col, 'Cases', 'NetAmount+Vat'] regardless of:
-    - the input list being empty
-    - column names coming in with different casing/whitespace
-    - 'Reason' vs 'Reasons' (or similar) naming
-    - non-numeric / missing values in the numeric columns
-    """
     expected_cols = [name_col, "Cases", "NetAmount+Vat"]
-
-    # Build from the raw rows WITHOUT forcing a column list first — forcing
-    # columns here would silently drop any differently-named key (e.g.
-    # "Reasons" instead of "Reason") before we get a chance to rename it.
     df = pd.DataFrame(rows)
 
-    # Normalize column names: strip whitespace, then map known synonyms
-    # (case-insensitive) onto the canonical name_col.
     synonyms = NAME_COLUMN_SYNONYMS.get(name_col, {name_col.lower()})
     rename_map = {}
     for col in df.columns:
@@ -180,22 +163,16 @@ def _normalize_table(rows, name_col):
     if rename_map:
         df = df.rename(columns=rename_map)
 
-    # Guarantee every expected column exists, even if the source data
-    # didn't produce it (e.g. an empty upload or an unexpected header).
     for col in expected_cols:
         if col not in df.columns:
             df[col] = 0.0 if col != name_col else ""
 
-    # Clean the name column: string cast + strip whitespace.
     df[name_col] = df[name_col].fillna("").astype(str).str.strip()
 
-    # Safely coerce numeric columns; anything non-numeric/missing becomes 0.
     for numeric_col in ["Cases", "NetAmount+Vat"]:
         df[numeric_col] = pd.to_numeric(df[numeric_col], errors="coerce").fillna(0)
 
-    # Drop rows with no name (nothing meaningful to group by).
     df = df[df[name_col] != ""]
-
     return df[expected_cols]
 
 
@@ -258,7 +235,7 @@ def build_download_workbook(insurance_company, status_summary, reason_summary):
             amt_cell.border = border
             amt_cell.number_format = '#,##0.00 "SAR"'
             row += 1
-        # totals row
+
         total_cases = int(df["Cases"].sum())
         total_amount = float(df["NetAmount+Vat"].sum())
         tot_label = ws.cell(row=row, column=1, value="TOTAL")
@@ -307,12 +284,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# --------------------------------------------------------------------------
-# Corporate theme (CSS injection)
-# NOTE: This styling is purely visual for the Streamlit UI. It does NOT
-# touch build_download_workbook() — the downloadable Excel file's formatting
-# is untouched.
-# --------------------------------------------------------------------------
 CORPORATE_CSS = """
 <style>
 /* ---- Font: Times New Roman everywhere ---- */
@@ -335,7 +306,7 @@ h1, h2, h3 {
     font-family: "Times New Roman", Times, serif !important;
 }
 
-/* ---- Field labels (selectbox / uploader captions) ---- */
+/* ---- Field labels ---- */
 .stSelectbox label, .stFileUploader label, .stMultiSelect label,
 div[data-testid="stWidgetLabel"] p {
     color: #111111 !important;
@@ -343,9 +314,6 @@ div[data-testid="stWidgetLabel"] p {
 }
 
 /* ---- Selectboxes (Insurance Company, Months) ---- */
-/* Broad, thorough targeting: BaseWeb class selectors AND ARIA role
-   selectors together, so no theme variant slips through with a dark
-   background. */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 div[data-baseweb="select"] > div,
 div[data-baseweb="select"],
@@ -365,7 +333,8 @@ div[data-baseweb="select"] span {
     color: #000000 !important;
     font-weight: 500 !important;
 }
-/* Dropdown popover menu + its options (both BaseWeb class and ARIA role) */
+
+/* Dropdown popover menu + its options */
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
 ul[role="listbox"], li[role="option"] {
     background-color: #FFFFFF !important;
@@ -386,21 +355,8 @@ li[role="option"]:hover {
     background-color: #D0D3E5 !important;
     color: #000000 !important;
 }
-/* Extra defensive coverage: exact DOM path + span/div text nodes, in
-   case a Streamlit version renders the control with different nesting
-   than the selectors above already handle. */
-[data-testid="stSelectbox"] > div > div,
-div[data-baseweb="select"] > div,
-ul[role="listbox"],
-li[role="option"] {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
-}
-div[data-baseweb="select"] div {
-    color: #000000 !important;
-}
 
-/* ---- File uploaders: kill the default dark/black dropzone ---- */
+/* ---- File uploaders: dropzone styling ---- */
 section[data-testid="stFileUploaderDropzone"],
 div[data-testid="stFileUploader"] section {
     background-color: #D7D8E0 !important;
@@ -412,48 +368,48 @@ div[data-testid="stFileUploader"] * {
     color: #333333 !important;
     fill: #333333 !important;
 }
-div[data-testid="stFileUploader"] button {
-    background-color: #FFFFFF !important;
-    color: #333333 !important;
-    border: 1px solid #2C3E50 !important;
-    border-radius: 6px !important;
-}
-/* Uploaded-file chip row (name, size, remove icon) */
+
+/* Uploaded-file chip row */
 div[data-testid="stFileUploaderFile"] {
     background-color: #E9E9EF !important;
     color: #333333 !important;
     border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 6px 10px !important;
 }
-/* Ensure file uploader remove/clear (X) button is ALWAYS visible.
-   The broad label/small-hiding rules below this block were catching
-   more than intended and hiding the delete control along with the
-   duplicate text — these selectors explicitly force it back on. */
+
+/* ---- EXPLICIT DELETE / REMOVE FILE BUTTON RECOVERY ---- */
+/* Force Streamlit's file delete button (X / trash icon) to be clearly visible and clickable */
 [data-testid="stFileUploader"] button[aria-label="Remove file"],
 [data-testid="stFileUploader"] button[title="Remove file"],
-[data-testid="stFileUploader"] div[role="button"] {
+[data-testid="stFileUploaderFile"] button,
+[data-testid="stFileUploader"] button[data-testid="baseButton-minimal"] {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    color: #333333 !important;
-    fill: #333333 !important;
+    background-color: #2C3E50 !important;
+    color: #FFFFFF !important;
+    border-radius: 50% !important;
+    border: none !important;
+    padding: 4px !important;
+    cursor: pointer !important;
+    margin-left: 8px !important;
 }
-/* Hide Streamlit's duplicate file uploader dropzone label text.
-   label_visibility="collapsed" in Python already removes the widget's
-   top-level label; these two rules are the defensive backstop for the
-   *internal* label Streamlit renders inside the dropzone itself, plus
-   the small "Limit 200MB per file..." caption. */
-[data-testid="stFileUploader"] section label,
-[data-testid="stFileUploader"] small {
-    display: none !important;
+[data-testid="stFileUploader"] button[aria-label="Remove file"] svg,
+[data-testid="stFileUploaderFile"] button svg {
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
 }
-[data-testid="stFileUploader"] label {
+
+/* Hide duplicate dropzone labels safely without hiding the file removal controls */
+[data-testid="stFileUploaderDropzone"] label,
+[data-testid="stFileUploaderDropzone"] small {
     display: none !important;
 }
 
-
-/* ---- Card wrapper used around our custom HTML tables ---- */
-/* Soft, light container that blends with the #DDDEEB page background
-   instead of standing out as a separate dark block. */
+/* ---- Card wrapper for HTML tables ---- */
 .corporate-card {
     background-color: #E9EAF3;
     border: 1px solid #B6BAD9;
@@ -513,10 +469,7 @@ table.corporate-table tr:last-child td {
     color: #6B1414;
 }
 
-/* ---- Notifications / alerts (st.success, st.info, etc.) ----
-   Applies to BOTH success surfaces: the native "Quarter processed
-   successfully." alert and the "✅ Balanced..." custom validation box
-   above (.validation-success shares this color too). */
+/* ---- Alert notifications (st.success, st.info) ---- */
 [data-testid="stAlert"] {
     background-color: #DAF0E3 !important;
     color: #111111 !important;
@@ -527,8 +480,6 @@ table.corporate-table tr:last-child td {
 }
 
 /* ---- Buttons (Process + Download) ---- */
-/* 1cm (38px) gap above each button, applied to the wrapper div so the
-   spacing is reliable regardless of Streamlit's internal button markup. */
 div.stDownloadButton,
 div.stButton {
     margin-top: 38px;
@@ -625,19 +576,12 @@ if results:
     total_cases_reasons = int(reason_summary["Cases"].sum())
 
     def with_total_row(df, name_col):
-        """Return a display copy with one dynamically computed TOTAL row
-        appended — computed strictly from the already-aggregated individual
-        statuses/reasons, never from any 'Total' row in the source sheets."""
         total_row = pd.DataFrame(
             [{name_col: "TOTAL", "Cases": df["Cases"].sum(), "NetAmount+Vat": df["NetAmount+Vat"].sum()}]
         )
         return pd.concat([df, total_row], ignore_index=True)
 
     def render_corporate_table(df, name_col, card_title):
-        """Render a DataFrame as a styled HTML table inside a corporate
-        card, so the th/td CSS rules (navy headers, lavender borders,
-        alternating rows) actually apply — st.dataframe's own grid widget
-        does not accept custom CSS for its cells."""
         html_table = df.to_html(index=False, classes="corporate-table", border=0, escape=False)
         st.markdown(
             f"""<div class="corporate-card">
