@@ -428,7 +428,7 @@ table.corporate-table tr:last-child td {
     border: 1px solid #B6BAD9;
 }
 .validation-success {
-    background-color: #d1e8da;
+    background-color: #b8d4ba !important;
     color: #111111;
 }
 .validation-error {
@@ -438,7 +438,7 @@ table.corporate-table tr:last-child td {
 
 /* ---- Alert notifications ---- */
 [data-testid="stAlert"] {
-    background-color: #d1e8da !important;
+    background-color: #b8d4ba !important;
     color: #111111 !important;
     border: 1px solid #B6BAD9 !important;
 }
@@ -575,7 +575,7 @@ if results:
         )
         render_corporate_table(display_reasons, "Reason", "Table 2 — Total Rejection Reasons Summary")
 
-    st.markdown("###Validation Check")
+    st.markdown("### Validation Check")
     if total_cases_status == total_cases_reasons:
         st.markdown(
             f"""<div class="validation-box validation-success">
