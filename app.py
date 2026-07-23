@@ -315,21 +315,87 @@ st.set_page_config(
 # --------------------------------------------------------------------------
 CORPORATE_CSS = """
 <style>
-/* ---- Page ---- */
+/* ---- Font: Times New Roman everywhere ---- */
+html, body, [class*="css"], .stApp, .stMarkdown, .stText,
+.stSelectbox, .stFileUploader, .stMultiSelect, .stButton, .stDownloadButton,
+table.corporate-table, input, textarea, select, button, label, p, span, div {
+    font-family: "Times New Roman", Times, serif !important;
+}
+
+/* ---- Page background ---- */
 .stApp {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #DDDEEB;
+    color: #111111;
 }
 
 /* ---- Headings ---- */
 h1, h2, h3 {
     color: #2C3E50 !important;
     font-weight: 700 !important;
+    font-family: "Times New Roman", Times, serif !important;
+}
+
+/* ---- Field labels (selectbox / uploader captions) ---- */
+.stSelectbox label, .stFileUploader label, .stMultiSelect label,
+div[data-testid="stWidgetLabel"] p {
+    color: #111111 !important;
+    font-weight: 600 !important;
+}
+
+/* ---- Selectboxes (Insurance Company, Months) ---- */
+div[data-baseweb="select"] > div {
+    background-color: #B6BAD9 !important;
+    color: #111111 !important;
+    border: 1px solid #2C3E50 !important;
+    border-radius: 8px !important;
+}
+div[data-baseweb="select"] * {
+    color: #111111 !important;
+    fill: #111111 !important;
+}
+/* Dropdown popover menu + its options */
+ul[data-baseweb="menu"], div[data-baseweb="popover"] ul {
+    background-color: #B6BAD9 !important;
+}
+ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li {
+    background-color: #B6BAD9 !important;
+    color: #111111 !important;
+}
+ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover {
+    background-color: #DDDEEB !important;
+    color: #111111 !important;
+}
+
+/* ---- File uploaders: kill the default dark/black dropzone ---- */
+section[data-testid="stFileUploaderDropzone"],
+div[data-testid="stFileUploader"] section {
+    background-color: #BABABF !important;
+    border: 1px dashed #2C3E50 !important;
+    border-radius: 10px !important;
+}
+section[data-testid="stFileUploaderDropzone"] *,
+div[data-testid="stFileUploader"] * {
+    color: #111111 !important;
+    fill: #111111 !important;
+}
+div[data-testid="stFileUploader"] button {
+    background-color: #FFFFFF !important;
+    color: #111111 !important;
+    border: 1px solid #2C3E50 !important;
+    border-radius: 6px !important;
+}
+/* Uploaded-file chip row (name, size, remove icon) */
+div[data-testid="stFileUploaderFile"] {
+    background-color: #E9E9EF !important;
+    color: #111111 !important;
+    border-radius: 6px !important;
 }
 
 /* ---- Card wrapper used around our custom HTML tables ---- */
+/* Soft, light container that blends with the #DDDEEB page background
+   instead of standing out as a separate dark block. */
 .corporate-card {
-    background-color: #AFBCC9;
+    background-color: #E9EAF3;
     border: 1px solid #B6BAD9;
     border-radius: 10px;
     padding: 16px 18px;
@@ -359,15 +425,15 @@ table.corporate-table th {
 }
 table.corporate-table td {
     padding: 8px 12px;
-    color: #000000;
+    color: #111111;
     border: 1px solid #B6BAD9;
 }
 table.corporate-table tr:nth-child(even) td {
-    background-color: #F4F6F8;
+    background-color: #F1F2F8;
 }
 table.corporate-table tr:last-child td {
     font-weight: 700;
-    background-color: #E4E8ED;
+    background-color: #DDDEEB;
 }
 
 /* ---- Validation boxes ---- */
@@ -391,7 +457,7 @@ table.corporate-table tr:last-child td {
 div.stDownloadButton > button,
 div.stButton > button {
     background-color: #2C3E50;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     border: 1px solid #2C3E50;
     border-radius: 8px;
     padding: 0.5em 1.3em;
@@ -402,12 +468,13 @@ div.stDownloadButton > button:hover,
 div.stButton > button:hover {
     background-color: #3E5670;
     border-color: #3E5670;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     box-shadow: 0 2px 8px rgba(44, 62, 80, 0.35);
 }
 </style>
 """
 st.markdown(CORPORATE_CSS, unsafe_allow_html=True)
+
 
 st.title("📊 Quarterly Insurance Claims Aggregator")
 st.caption("Royal Commission clinics — Jubail Industrial")
@@ -549,4 +616,5 @@ if results:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 else:
+    st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
