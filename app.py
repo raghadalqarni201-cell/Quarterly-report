@@ -428,7 +428,7 @@ table.corporate-table tr:last-child td {
     border: 1px solid #B6BAD9;
 }
 .validation-success {
-    background-color: #DAF0E3;
+    background-color: #d1e8da;
     color: #111111;
 }
 .validation-error {
@@ -438,7 +438,7 @@ table.corporate-table tr:last-child td {
 
 /* ---- Alert notifications ---- */
 [data-testid="stAlert"] {
-    background-color: #DAF0E3 !important;
+    background-color: #d1e8da !important;
     color: #111111 !important;
     border: 1px solid #B6BAD9 !important;
 }
@@ -481,7 +481,7 @@ if "results" not in st.session_state:
 
 insurance_company = st.selectbox("Insurance Company", INSURANCE_COMPANIES)
 
-st.markdown("### Upload the 3 monthly files for this quarter")
+st.markdown("Upload the 3 monthly files for this quarter")
 cols = st.columns(3)
 uploads = []
 for i, col in enumerate(cols, start=1):
