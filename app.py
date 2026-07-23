@@ -348,38 +348,32 @@ li[role="option"]:hover {
     color: #000000 !important;
 }
 
-/* ---- File uploaders: dropzone styling ---- */
+/* ---- File uploaders styling ---- */
 section[data-testid="stFileUploaderDropzone"],
 div[data-testid="stFileUploader"] section {
     background-color: #D7D8E0 !important;
     border: 1px dashed #2C3E50 !important;
     border-radius: 10px !important;
 }
-section[data-testid="stFileUploaderDropzone"] *,
-div[data-testid="stFileUploader"] * {
-    color: #333333 !important;
-    fill: #333333 !important;
-}
 
-/* Uploaded-file chip row */
+/* Clean up uploaded file box and show built-in delete button properly */
 div[data-testid="stFileUploaderFile"] {
-    background-color: #E9E9EF !important;
-    color: #333333 !important;
+    background-color: #FFFFFF !important;
+    color: #111111 !important;
+    border: 1px solid #2C3E50 !important;
     border-radius: 6px !important;
 }
 
-/* Force Streamlit action buttons inside uploaded files (the delete / remove icon) */
-[data-testid="stFileUploaderFileData"] + div button,
-[data-testid="stFileUploaderDeleteBtn"],
-[data-testid="stFileUploader"] button {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Ensure Native Streamlit Delete Button is visible and clean */
+div[data-testid="stFileUploaderFile"] button {
+    background-color: transparent !important;
+    border: none !important;
+    color: #2C3E50 !important;
 }
-
-/* Hide duplicate text labels safely */
-[data-testid="stFileUploaderDropzone"] small {
-    display: none !important;
+div[data-testid="stFileUploaderFile"] button:hover {
+    color: #C0392B !important;
+    background-color: rgba(192, 57, 43, 0.1) !important;
+    border-radius: 50% !important;
 }
 
 /* ---- Card wrapper for HTML tables ---- */
@@ -455,7 +449,7 @@ table.corporate-table tr:last-child td {
 /* ---- Buttons (Process + Download) ---- */
 div.stDownloadButton,
 div.stButton {
-    margin-top: 38px;
+    margin-top: 20px;
 }
 div.stDownloadButton > button,
 div.stButton > button {
@@ -496,13 +490,6 @@ for i, col in enumerate(cols, start=1):
         f = st.file_uploader(
             f"File {i}", type=["xlsx", "xls"], key=f"file_{i}", label_visibility="collapsed"
         )
-        
-        # إضافة زر حذف مباشر برمجياً تحت مربع الملف لمنح خيار الإزالة الفوري
-        if f is not None:
-            if st.button(f"🗑️ Delete File {i}", key=f"clear_{i}"):
-                st.session_state[f"file_{i}"] = None
-                st.rerun()
-
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
@@ -512,7 +499,7 @@ if process_clicked:
     if any(u["file"] is None for u in uploads):
         st.warning("Please upload all 3 files before processing.")
     elif len({u["month"] for u in uploads}) != 3:
-        st.warning("Please warning: select 3 different months (one per file).")
+        st.warning("Please select 3 different months (one per file).")
     else:
         all_status_rows = []
         all_reason_rows = []
