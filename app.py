@@ -350,7 +350,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 div[data-baseweb="select"] > div,
 div[data-baseweb="select"],
 div[role="combobox"] {
-    background-color: #E0E3FF !important;
+    background-color: #FFFFFF !important;
     color: #000000 !important;
     border: 1px solid #2C3E50 !important;
     border-radius: 6px !important;
@@ -361,16 +361,20 @@ div[data-baseweb="select"] * {
     fill: #000000 !important;
     font-family: "Times New Roman", Times, serif !important;
 }
+div[data-baseweb="select"] span {
+    color: #000000 !important;
+    font-weight: 500 !important;
+}
 /* Dropdown popover menu + its options (both BaseWeb class and ARIA role) */
 ul[data-baseweb="menu"], div[data-baseweb="popover"] ul,
 ul[role="listbox"], li[role="option"] {
-    background-color: #E0E3FF !important;
+    background-color: #FFFFFF !important;
     border: 1px solid #2C3E50 !important;
     border-radius: 6px !important;
 }
 ul[data-baseweb="menu"] li, div[data-baseweb="popover"] li,
 li[role="option"] {
-    background-color: #E0E3FF !important;
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }
 ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] li *,
@@ -379,7 +383,7 @@ li[role="option"] * {
 }
 ul[data-baseweb="menu"] li:hover, div[data-baseweb="popover"] li:hover,
 li[role="option"]:hover {
-    background-color: #C7CBF2 !important;
+    background-color: #D0D3E5 !important;
     color: #000000 !important;
 }
 /* Extra defensive coverage: exact DOM path + span/div text nodes, in
@@ -389,10 +393,9 @@ li[role="option"]:hover {
 div[data-baseweb="select"] > div,
 ul[role="listbox"],
 li[role="option"] {
-    background-color: #E0E3FF !important;
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }
-div[data-baseweb="select"] span,
 div[data-baseweb="select"] div {
     color: #000000 !important;
 }
@@ -420,6 +423,19 @@ div[data-testid="stFileUploaderFile"] {
     background-color: #E9E9EF !important;
     color: #333333 !important;
     border-radius: 6px !important;
+}
+/* Ensure file uploader remove/clear (X) button is ALWAYS visible.
+   The broad label/small-hiding rules below this block were catching
+   more than intended and hiding the delete control along with the
+   duplicate text — these selectors explicitly force it back on. */
+[data-testid="stFileUploader"] button[aria-label="Remove file"],
+[data-testid="stFileUploader"] button[title="Remove file"],
+[data-testid="stFileUploader"] div[role="button"] {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #333333 !important;
+    fill: #333333 !important;
 }
 /* Hide Streamlit's duplicate file uploader dropzone label text.
    label_visibility="collapsed" in Python already removes the widget's
@@ -499,7 +515,7 @@ table.corporate-table tr:last-child td {
 
 /* ---- Notifications / alerts (st.success, st.info, etc.) ----
    Applies to BOTH success surfaces: the native "Quarter processed
-   successfully." alert and the " Balanced..." custom validation box
+   successfully." alert and the "✅ Balanced..." custom validation box
    above (.validation-success shares this color too). */
 [data-testid="stAlert"] {
     background-color: #DAF0E3 !important;
@@ -559,7 +575,7 @@ for i, col in enumerate(cols, start=1):
         m = st.selectbox(f"Month for File {i}", MONTH_NAMES, index=(i - 1) % 12, key=f"month_{i}")
         uploads.append({"file": f, "month": m})
 
-process_clicked = st.button("Process Quarter", type="primary")
+process_clicked = st.button("🔄 Process Quarter", type="primary")
 
 if process_clicked:
     if any(u["file"] is None for u in uploads):
@@ -648,11 +664,11 @@ if results:
         )
         render_corporate_table(display_reasons, "Reason", "Table 2 — Total Rejection Reasons Summary")
 
-    st.markdown("### Validation Check")
+    st.markdown("### ✅ Validation Check")
     if total_cases_status == total_cases_reasons:
         st.markdown(
             f"""<div class="validation-box validation-success">
-                     Balanced: Total Cases (Status) = {total_cases_status:,}
+                    ✅ Balanced: Total Cases (Status) = {total_cases_status:,}
                     = Total Cases (Reasons) = {total_cases_reasons:,}
                 </div>""",
             unsafe_allow_html=True,
@@ -675,11 +691,10 @@ if results:
         f"Quarterly_Claims_Summary.xlsx"
     )
     st.download_button(
-        label="Download Excel Summary",
+        label="⬇️ Download Excel Summary",
         data=excel_buffer,
         file_name=file_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 else:
     st.info("Upload 3 files, select their months, and click **Process Quarter** to see results.")
-
