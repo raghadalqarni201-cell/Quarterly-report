@@ -41,7 +41,7 @@ MONTH_NAMES = [
 SUM_SHEET_NAME = "SUM"
 
 # Each clinic shares the same data-row span for both its Status table
-# (columns A:C) and its Rejection Reasons table (columns E:G).
+# (columns A:C) and its "Total Reasons" table (columns G:I).
 CLINICS = [
     {"name": "Al Osrah Medical Center", "start": 4, "end": 22},
     {"name": "Al Dafi First Aid Medical Center", "start": 26, "end": 44},
@@ -53,7 +53,7 @@ CLINICS = [
 ]
 
 STATUS_COL = {"name": 1, "cases": 2, "amount": 3}   # A, B, C
-REASON_COL = {"name": 5, "cases": 6, "amount": 7}   # E, F, G
+REASON_COL = {"name": 7, "cases": 8, "amount": 9}   # G, H, I ("Total Reasons" table)
 
 
 # --------------------------------------------------------------------------
